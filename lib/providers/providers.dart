@@ -51,7 +51,6 @@ class FuncionesNotifier extends StateNotifier<List<Funcion>> {
     }
   }
 
-  /// 🔥 Nuevo método para borrar función
   Future<void> borrarFuncion(String id) async {
     try {
       await db.collection('funciones').doc(id).delete();
