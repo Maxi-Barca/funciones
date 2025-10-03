@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:myapp/entities/user.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -10,15 +11,29 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // Credenciales válidas
-
-  // Texto ingresado por el usuario
-  String inputUsuario = '';
-  String inputContrasena = '';
   String mensaje = '';
-
   TextEditingController textController1 = TextEditingController();
   TextEditingController textController2 = TextEditingController();
+
+  Future<User?> loginUser(String email, String contrasena) async {
+    final corroborar = await FirebaseFirestore.instance
+        .collection('user')
+        .where('mail', isEqualTo: email)
+        .get();
+
+    if (corroborar.docs.isEmpty) {
+      return null;
+    }
+
+    final doc = corroborar.docs.first;
+    final user = User.fromFirestore(doc);
+
+    if (user.contrasena == contrasena) {
+      return user; 
+    } else {
+      return User(id: user.id, email: user.email, contrasena: ''); 
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,50 +42,41 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Iniciar sesión', style: TextStyle(fontSize: 35)),
+            const Text('Iniciar sesión', style: TextStyle(fontSize: 35)),
             const SizedBox(height: 20),
-            Text('Ingrese sus datos', style: TextStyle(fontSize: 20)),
+            const Text('Ingrese sus datos', style: TextStyle(fontSize: 20)),
             const SizedBox(height: 20),
-            Text('Usuario:', style: TextStyle(fontSize: 20)),
+            const Text('Usuario:', style: TextStyle(fontSize: 20)),
             const SizedBox(height: 10),
             TextField(
-              //que se ingrese el usuario
               controller: textController1,
             ),
             const SizedBox(height: 20),
-            Text('Contraseña:', style: TextStyle(fontSize: 20)),
+            const Text('Contraseña:', style: TextStyle(fontSize: 20)),
             const SizedBox(height: 10),
             TextField(
-              //que se ingrese la constraseña
               controller: textController2,
-              obscureText: true, // Oculta el texto con puntos
+              obscureText: true,
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  inputUsuario = textController1.text;
-                  inputContrasena = textController2.text;
+              onPressed: () async {
+                final email = textController1.text.trim();
+                final contra = textController2.text.trim();
 
-                  User? usuarioEncontrado;
+                final usuario = await loginUser(email, contra);
 
-                  for (User usuario in usuarios) {
-                    if (usuario.email == inputUsuario) {
-                      usuarioEncontrado = usuario;
-                      break;
-                    }
-                  }
-
-                  if (usuarioEncontrado != null) {
-                    if (usuarioEncontrado.contrasena == inputContrasena) {
-                      context.go('/home', extra: usuarioEncontrado);
-                    } else {
-                      mensaje = 'Contraseña incorrecta';
-                    }
-                  } else {
-                    mensaje = 'No se encontró un usuario con ese email';
-                  }
-                });
+                if (usuario != null && usuario.contrasena.isNotEmpty) {
+                  context.go('/home');
+                } else if (usuario != null && usuario.contrasena.isEmpty) {
+                  setState(() {
+                    mensaje = 'contraseña incorrecta';
+                  });
+                } else {
+                  setState(() {
+                    mensaje = 'no se encontró un usuario con ese email';
+                  });
+                }
               },
               child: const Text('Iniciar sesión'),
             ),

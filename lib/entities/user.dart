@@ -1,46 +1,22 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class User {
-  String email;
-  String contrasena;
-  String nombre;
-  String direccion;
+  final String? id;
+  final String email;
+  final String contrasena;
 
   User({
+    this.id,
     required this.email,
     required this.contrasena,
-    required this.nombre,
-    required this.direccion,
   });
-}
 
-List<User> usuarios = [
-    User(
-      email: 'maxibarcarolo@gmail.com',
-      contrasena: 'maxi1701',
-      nombre: 'Maxi',
-      direccion: 'disney',
-    ),
-    User(
-      email: 'leomessi@gmail.com',
-      contrasena: 'goat10',
-      nombre: 'Lionel',
-      direccion: 'miami',
-    ),
-    User(
-      email: 'alberteinstein@gmail.com',
-      contrasena: 'e=mc²',
-      nombre: 'Alberto',
-      direccion: 'germany',
-    ),
-    User(
-      email: 'justinbieber@gmail.com',
-      contrasena: 'babybaby',
-      nombre: 'Justin',
-      direccion: 'caballito',
-    ),
-    User(
-      email: 'javiermilei@gmail.com',
-      contrasena: 'libertad',
-      nombre: 'Javier',
-      direccion: 'casa rosada',
-    ),
-  ];
+  static User fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return User(
+      id: doc.id,
+      email: data['mail'],
+      contrasena: data['contra'],
+    );
+  }
+}

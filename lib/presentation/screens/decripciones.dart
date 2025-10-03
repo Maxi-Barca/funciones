@@ -39,15 +39,15 @@ class DetailScreen extends ConsumerWidget {
               child: Text("Editar"),
               ),
                 TextButton(
-                onPressed: () {
-                  final nuevaLista = [...listaActual];
-                  nuevaLista.remove(funcion);
+                  onPressed: () async {
+                    if (funcion.id != null) {
+                      await ref.read(funcionesProvider.notifier).borrarFuncion(funcion.id!);
+                    }
 
-                  ref.read(funcionesProvider.notifier).state = nuevaLista;
-                  ref.read(selectedFuncionProvider.notifier).state = null;
-                  context.pop();
-                },
-                  child: Text("Borrar"),
+                    ref.read(selectedFuncionProvider.notifier).state = null;
+                    context.pop();
+                  },
+                  child: const Text("Borrar"),
                 ),
               ],
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:myapp/providers/provider_puesto.dart';
 import 'package:myapp/providers/providers.dart';
 
 class EditScreen extends ConsumerWidget {
@@ -43,10 +44,14 @@ class EditScreen extends ConsumerWidget {
             TextField(controller: imagenUrl),
             SizedBox(height: 20),
             TextButton(
-              onPressed: () {
-                  funcion.funcion = nombre.text;
-                  funcion.descripcion = descripcion.text;
-                  funcion.imagenUrl = imagenUrl.text;
+              onPressed: () async {
+                final nuevaFuncion = funcion.copyWith(
+                  funcion: nombre.text,
+                  descripcion: descripcion.text,
+                  imagenUrl: imagenUrl.text,
+                );
+
+                await ref.read(funcionesProvider.notifier).editarFuncion(nuevaFuncion);
 
                 context.go('/home');
               },
