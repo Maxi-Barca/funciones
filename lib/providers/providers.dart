@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/entities/funciones.dart';
 
 final funcionesProvider =
@@ -12,51 +13,58 @@ class FuncionesNotifier extends StateNotifier<List<Funcion>> {
 
   FuncionesNotifier(this.db) : super([]);
 
+  String get uid => FirebaseAuth.instance.currentUser!.uid;
+
   Future<void> addFuncion(Funcion funcion) async {
-    final doc = db.collection('funciones').doc();
-    try {
-      await doc.set(funcion.toFirestore());
-      state = [...state, funcion.copyWith(id: doc.id)];
-    } catch (e) {
-      print(e);
-    }
+    final doc = db
+        .collection('user')
+        .doc(uid)
+        .collection('funciones')
+        .doc();
+
+    await doc.set(funcion.toFirestore());
+
+    state = [...state, funcion.copyWith(id: doc.id)];
   }
 
   Future<void> getAllFunciones() async {
-    final docs = db
+    final docs = await db
+        .collection('user')
+        .doc(uid)
         .collection('funciones')
         .withConverter(
           fromFirestore: Funcion.fromFirestore,
-          toFirestore: (Funcion funcion, _) => funcion.toFirestore(),
-        );
-    final funcioness = await docs.get();
-    state = funcioness.docs.map((d) => d.data()).toList();
+          toFirestore: (Funcion f, _) => f.toFirestore(),
+        )
+        .get();
+
+    state = docs.docs.map((d) => d.data()).toList();
   }
 
   Future<void> editarFuncion(Funcion funcion) async {
     if (funcion.id == null) return;
 
-    try {
-      await db
-          .collection('funciones')
-          .doc(funcion.id)
-          .set(funcion.toFirestore());
+    await db
+        .collection('user')
+        .doc(uid)
+        .collection('funciones')
+        .doc(funcion.id)
+        .set(funcion.toFirestore());
 
-      state = [
-        for (final f in state)
-          if (f.id == funcion.id) funcion else f,
-      ];
-    } catch (e) {
-      print(e);
-    }
+    state = [
+      for (final f in state)
+        if (f.id == funcion.id) funcion else f,
+    ];
   }
 
   Future<void> borrarFuncion(String id) async {
-    try {
-      await db.collection('funciones').doc(id).delete();
-      state = state.where((f) => f.id != id).toList();
-    } catch (e) {
-      print(e);
-    }
+    await db
+        .collection('user')
+        .doc(uid)
+        .collection('funciones')
+        .doc(id)
+        .delete();
+
+    state = state.where((f) => f.id != id).toList();
   }
 }

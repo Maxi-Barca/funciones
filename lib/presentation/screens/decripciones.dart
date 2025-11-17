@@ -11,7 +11,6 @@ class DetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final funcion = ref.watch(selectedFuncionProvider);
     final top = ref.watch(selectedFuncionIndexProvider);
-    final listaActual = ref.watch(funcionesProvider);
 
     if (funcion == null) {
     return Scaffold(

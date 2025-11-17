@@ -14,19 +14,30 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
-    super.initState();
+  super.initState();
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
     ref.read(funcionesProvider.notifier).getAllFunciones();
-  }
+  });
+}
 
   @override
   Widget build(BuildContext context) {
     final listaFunciones = ref.watch(funcionesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('TOP DE MEJORES FUNCIONES MATEMÁTICAS')),
+      appBar: AppBar(
+        title: const Text('Mis Funciones Matemáticas'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () => context.push('/perfil'),
+          )
+        ],
+      ),
 
       body: listaFunciones.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: Text("No tienes funciones aún"))
           : ListView.builder(
               itemCount: listaFunciones.length,
               itemBuilder: (context, index) {
@@ -43,7 +54,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       fit: BoxFit.cover,
                     ),
                     title: Text(funcion.funcion),
-                    subtitle: Text("TOP ${index + 1}"),
+                    subtitle: Text("Función ${index + 1}"),
                     onTap: () {
                       ref.read(selectedFuncionProvider.notifier).state = funcion;
                       ref.read(selectedFuncionIndexProvider.notifier).state = index + 1;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:myapp/entities/user.dart';
 
@@ -15,23 +16,25 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController textController1 = TextEditingController();
   TextEditingController textController2 = TextEditingController();
 
-  Future<User?> loginUser(String email, String contrasena) async {
-    final corroborar = await FirebaseFirestore.instance
-        .collection('user')
-        .where('mail', isEqualTo: email)
-        .get();
+  Future<UserCustom?> loginUser(String email, String contrasena) async {
+    try {
+      UserCredential cred = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: contrasena);
 
-    if (corroborar.docs.isEmpty) {
+      final uid = cred.user!.uid;
+
+      final doc = await FirebaseFirestore.instance
+          .collection('user')
+          .doc(uid)
+          .get();
+
+      if (!doc.exists) return null;
+
+      return UserCustom.fromFirestore(doc);
+
+    } catch (e) {
+      mensaje = "Error al iniciar sesión: $e";
       return null;
-    }
-
-    final doc = corroborar.docs.first;
-    final user = User.fromFirestore(doc);
-
-    if (user.contrasena == contrasena) {
-      return user; 
-    } else {
-      return User(id: user.id, email: user.email, contrasena: ''); 
     }
   }
 
@@ -44,14 +47,17 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             const Text('Iniciar sesión', style: TextStyle(fontSize: 35)),
             const SizedBox(height: 20),
+
             const Text('Ingrese sus datos', style: TextStyle(fontSize: 20)),
             const SizedBox(height: 20),
+
             const Text('Usuario:', style: TextStyle(fontSize: 20)),
             const SizedBox(height: 10),
             TextField(
               controller: textController1,
             ),
             const SizedBox(height: 20),
+
             const Text('Contraseña:', style: TextStyle(fontSize: 20)),
             const SizedBox(height: 10),
             TextField(
@@ -59,29 +65,45 @@ class _LoginScreenState extends State<LoginScreen> {
               obscureText: true,
             ),
             const SizedBox(height: 20),
+
             ElevatedButton(
               onPressed: () async {
                 final email = textController1.text.trim();
                 final contra = textController2.text.trim();
 
+                if (email.isEmpty || contra.isEmpty) {
+                  setState(() {
+                    mensaje = "Complete ambos campos";
+                  });
+                  return;
+                }
+
                 final usuario = await loginUser(email, contra);
 
-                if (usuario != null && usuario.contrasena.isNotEmpty) {
+                if (usuario != null) {
                   context.go('/home');
-                } else if (usuario != null && usuario.contrasena.isEmpty) {
-                  setState(() {
-                    mensaje = 'contraseña incorrecta';
-                  });
                 } else {
                   setState(() {
-                    mensaje = 'no se encontró un usuario con ese email';
+                    mensaje = 'Usuario o contraseña incorrectos';
                   });
                 }
               },
               child: const Text('Iniciar sesión'),
             ),
+
             const SizedBox(height: 20),
             Text(mensaje),
+            const SizedBox(height: 20),
+
+            ElevatedButton(
+              onPressed: () {
+                context.go('/register');
+              },
+              child: const Text(
+                'Registrate si no tenes cuenta',
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
           ],
         ),
       ),

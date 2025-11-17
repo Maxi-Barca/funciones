@@ -2,8 +2,11 @@ import 'package:go_router/go_router.dart';
 import 'package:myapp/presentation/screens/agregar.dart';
 import 'package:myapp/presentation/screens/decripciones.dart';
 import 'package:myapp/presentation/screens/edit.dart';
+import 'package:myapp/presentation/screens/editarPerfil.dart';
 import 'package:myapp/presentation/screens/home.dart';
 import 'package:myapp/presentation/screens/login.dart';
+import 'package:myapp/presentation/screens/perfil.dart';
+import 'package:myapp/presentation/screens/register.dart';
 
 
 
@@ -30,4 +33,16 @@ final appRouter = GoRouter(
     path: '/edit',
     builder: (context, state) => const EditScreen(),
   ),
+  GoRoute(
+    path: '/register',
+    builder: (context, state) => const RegisterScreen(),
+  ),
+  GoRoute(
+    path: '/perfil',
+    builder: (context, state) => const PerfilScreen(),
+  ),
+  GoRoute(
+    path: '/editarPerfil',
+    builder: (context, state) => const EditarPerfilScreen(),
+  )
 ]);
